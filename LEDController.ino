@@ -1,5 +1,7 @@
 #include "mavlinklib/common/mavlink.h"
 
+#define DEBUG
+
 // System Info
 const uint8_t SYSTEM_ID = 1; // ID of the target system (flight controller)
 const uint8_t TARGET_COMPONENT_ID = 1; // ID of the target component (flight controller)
@@ -20,6 +22,9 @@ const uint16_t REQUEST_BRIGHTNESS_RATE = 100; // units: us
 
 // Timers
 long previous_hb = 0;
+
+// MAV State
+bool armed = false;
 
   
 void setup() {
@@ -136,6 +141,32 @@ void Comm_Receive() {
         case MAVLINK_MSG_ID_HEARTBEAT:  // #0: Heartbeat
           {
             // read heartbeat
+            mavlink_heartbeat_t heartbeat;
+            mavlink_msg_heartbeat_decode(&msg, &heartbeat);
+
+            armed = (heartbeat.base_mode-1 == MAV_MODE_STABILIZE_ARMED || 
+              heartbeat.base_mode-1 == MAV_MODE_MANUAL_ARMED ||
+              heartbeat.base_mode-1 == MAV_MODE_GUIDED_ARMED ||
+              heartbeat.base_mode-1 == MAV_MODE_AUTO_ARMED ||
+              heartbeat.base_mode-1 == MAV_MODE_TEST_ARMED);
+            
+            #ifdef DEBUG
+            if(msg.sysid == 1 & msg.compid == 1){
+              Serial.println("\nHEARTBEAT");
+              Serial.println(msg.sysid);
+              Serial.println(msg.compid);
+              Serial.println(heartbeat.type);
+              Serial.println(heartbeat.autopilot);
+              Serial.println(heartbeat.base_mode);
+              Serial.println(heartbeat.custom_mode);
+              Serial.println(heartbeat.system_status);
+              Serial.println(heartbeat.mavlink_version);
+              Serial.println("------ Fin -------");
+
+              Serial.println("\nArmed: ");
+              Serial.println(armed);
+            #endif
+
           }
           break;
 
@@ -151,13 +182,15 @@ void Comm_Receive() {
             mavlink_param_value_t param_value;
             mavlink_msg_param_value_decode(&msg, &param_value);
 
-//            Serial.println("PX PARAM_VALUE");
-//            Serial.println(param_value.param_value);
-//            Serial.println(param_value.param_count);
-//            Serial.println(param_value.param_index);
-//            Serial.println(param_value.param_id);
-//            Serial.println(param_value.param_type);
-//            Serial.println("------ Fin -------");
+          #ifdef DEBUG
+            Serial.println("\nPX PARAM_VALUE");
+            Serial.println(param_value.param_value);
+            Serial.println(param_value.param_count);
+            Serial.println(param_value.param_index);
+            Serial.println(param_value.param_id);
+            Serial.println(param_value.param_type);
+            Serial.println("------ Fin -------");
+          #endif
 
 //            // Handle brightness parameter
 //            if(param_value.param_index == MAVLINK_MSG_ID_PARAM_VALUE){
