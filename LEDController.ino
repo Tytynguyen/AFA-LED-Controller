@@ -2,8 +2,9 @@
  *  Tyler Nguyen 2020
  *  LED Controller Board for Autonomous Flying Ambulance LED Indicators
 */
-#include "mavlinklib/common/mavlink.h"
-#include "leddriverlib/leddriver.cpp"
+#include "lib/mavlink/common/mavlink.h" // Mavlink headers
+#include "lib/leddriver/leddriver.cpp" // LED driver helpers
+#include "lib/mavlinkcommhandler/mavlinkcommhandler.h"
 
 #define DEBUG
 
